@@ -1,23 +1,42 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { Bot, X, Send, Sparkles } from "lucide-react";
 import { AI_GREETING, getAiReply, getQuickQuestions } from "@/lib/ai-responses";
 import { sectionAiHints } from "@/lib/wow-content";
 import { useSite } from "@/lib/site-context";
+import { cn } from "@/lib/utils";
 
 type Message = { role: "user" | "bot"; text: string };
 
+function subscribeNoop() {
+  return () => {};
+}
+
 export function AiChat() {
+  const mounted = useSyncExternalStore(subscribeNoop, () => true, () => false);
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([AI_GREETING]);
   const [typing, setTyping] = useState(false);
   const [proactiveSent, setProactiveSent] = useState(false);
+  const [stickyCtaVisible, setStickyCtaVisible] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { activeSection } = useSite();
   const lastSection = useRef(activeSection);
+
+  const fabBottom = stickyCtaVisible ? "5.5rem" : "1.5rem";
+  const panelBottom = stickyCtaVisible ? "9.5rem" : "6rem";
+
+  useEffect(() => {
+    const onScroll = () => {
+      setStickyCtaVisible(window.scrollY > window.innerHeight * 0.6);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -39,12 +58,23 @@ export function AiChat() {
     const hint = sectionAiHints[activeSection];
     if (!hint || activeSection === "hero") return;
 
-    setMessages((m) => {
-      const last = m[m.length - 1];
-      if (last?.role === "bot" && last.text === hint) return m;
-      return [...m, { role: "bot", text: hint }];
+    queueMicrotask(() => {
+      setMessages((m) => {
+        const last = m[m.length - 1];
+        if (last?.role === "bot" && last.text === hint) return m;
+        return [...m, { role: "bot", text: hint }];
+      });
     });
   }, [activeSection, open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   const send = async (text: string) => {
     const trimmed = text.trim();
@@ -60,138 +90,141 @@ export function AiChat() {
     setTyping(false);
   };
 
-  return (
-    <>
-      <AnimatePresence>
-        {proactiveSent && !open && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed bottom-24 right-4 z-[69] hidden max-w-[200px] rounded-2xl border border-brick/30 bg-surface-elevated px-3 py-2 text-[11px] text-muted shadow-lg sm:block sm:right-6"
-          >
-            <button type="button" onClick={() => setOpen(true)} className="text-left hover:text-foreground">
-              💬 Есть вопрос? AI-помощник онлайн
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+  if (!mounted) return null;
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.25 }}
-            className="google-panel fixed bottom-24 right-4 z-[70] flex h-[420px] w-[calc(100vw-2rem)] max-w-sm flex-col rounded-2xl bg-surface-elevated shadow-2xl shadow-[rgba(66,133,244,0.15)] sm:right-6"
-          >
-            <div className="flex items-center justify-between border-b border-white/5 bg-brick/10 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brick/20">
-                  <Bot className="h-4 w-4 text-brick-light" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">AI-помощник</p>
-                  <p className="flex items-center gap-1 text-[10px] text-green-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-                    онлайн
-                  </p>
+  return createPortal(
+    <div
+      className="pointer-events-none fixed inset-0 z-[9999]"
+      aria-live="polite"
+    >
+      {proactiveSent && !open && (
+        <div
+          className="pointer-events-auto fixed right-4 hidden max-w-[200px] rounded-2xl border border-brick/30 bg-surface-elevated px-3 py-2 text-[11px] text-muted shadow-lg sm:block sm:right-6"
+          style={{ bottom: panelBottom }}
+        >
+          <button type="button" onClick={() => setOpen(true)} className="text-left hover:text-foreground">
+            💬 Есть вопрос? AI-помощник онлайн
+          </button>
+        </div>
+      )}
+
+      {open && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="AI-помощник"
+          className="chat-panel-overlay pointer-events-auto fixed inset-x-4 flex max-w-sm flex-col rounded-2xl bg-surface-elevated shadow-2xl sm:inset-x-auto sm:right-6 sm:w-full"
+          style={{
+            bottom: panelBottom,
+            height: "min(420px, calc(100dvh - 10rem))",
+          }}
+        >
+          <div className="flex items-center justify-between border-b border-white/5 bg-brick/10 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brick/20">
+                <Bot className="h-4 w-4 text-brick-light" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">AI-помощник</p>
+                <p className="flex items-center gap-1 text-[10px] text-green-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
+                  онлайн
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:text-foreground"
+              aria-label="Закрыть чат"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start gap-2"}`}
+              >
+                {msg.role === "bot" && (
+                  <Sparkles className="mt-1 h-3.5 w-3.5 shrink-0 text-brick-light" />
+                )}
+                <div
+                  className={cn(
+                    "max-w-[85%] whitespace-pre-line rounded-2xl px-3 py-2 text-xs leading-relaxed",
+                    msg.role === "user"
+                      ? "rounded-tr-sm bg-white/10 text-foreground"
+                      : "rounded-tl-sm border border-brick/20 bg-brick/10 text-foreground",
+                  )}
+                >
+                  {msg.text}
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:text-foreground"
-                aria-label="Закрыть чат"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
-              {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start gap-2"}`}
-                >
-                  {msg.role === "bot" && (
-                    <Sparkles className="mt-1 h-3.5 w-3.5 shrink-0 text-brick-light" />
-                  )}
-                  <div
-                    className={`max-w-[85%] whitespace-pre-line rounded-2xl px-3 py-2 text-xs leading-relaxed ${
-                      msg.role === "user"
-                        ? "rounded-tr-sm bg-white/10 text-foreground"
-                        : "rounded-tl-sm border border-brick/20 bg-brick/10 text-foreground"
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              {typing && (
-                <div className="flex gap-1 px-6">
-                  {[0, 1, 2].map((d) => (
-                    <motion.span
-                      key={d}
-                      animate={{ opacity: [0.3, 1, 0.3] }}
-                      transition={{ repeat: Infinity, duration: 1, delay: d * 0.2 }}
-                      className="h-1.5 w-1.5 rounded-full bg-brick-light"
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="border-t border-white/5 p-3">
-              <div className="mb-2 flex flex-wrap gap-1.5">
-                {getQuickQuestions().map((q) => (
-                  <button
-                    key={q}
-                    type="button"
-                    onClick={() => send(q)}
-                    className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] text-muted transition-colors hover:border-brick/30 hover:text-foreground"
-                  >
-                    {q}
-                  </button>
+            ))}
+            {typing && (
+              <div className="flex gap-1 px-6">
+                {[0, 1, 2].map((d) => (
+                  <span
+                    key={d}
+                    className="h-1.5 w-1.5 animate-pulse rounded-full bg-brick-light"
+                    style={{ animationDelay: `${d * 200}ms` }}
+                  />
                 ))}
               </div>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  send(input);
-                }}
-                className="flex gap-2"
-              >
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ваш вопрос..."
-                  className="input-field !py-2 text-xs"
-                />
-                <button
-                  type="submit"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-brick to-red text-white"
-                  aria-label="Отправить"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              </form>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            )}
+          </div>
 
-      <motion.button
+          <div className="border-t border-white/5 p-3">
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {getQuickQuestions().map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => send(q)}
+                  className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] text-muted transition-colors hover:border-brick/30 hover:text-foreground"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                send(input);
+              }}
+              className="flex gap-2"
+            >
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ваш вопрос..."
+                className="input-field !py-2 text-xs"
+              />
+              <button
+                type="submit"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-brick to-red text-white"
+                aria-label="Отправить"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="fixed bottom-6 right-4 z-[70] flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brick to-red text-white shadow-xl shadow-brick/30 sm:right-6"
-        aria-label="Открыть AI-чат"
+        className="pointer-events-auto fixed right-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brick to-red text-white shadow-xl shadow-brick/30 transition-transform active:scale-95 sm:right-6"
+        style={{ bottom: fabBottom, touchAction: "manipulation" }}
+        aria-label={open ? "Закрыть AI-чат" : "Открыть AI-чат"}
+        aria-expanded={open}
       >
         {open ? <X className="h-6 w-6" /> : <Bot className="h-6 w-6" />}
-      </motion.button>
-    </>
+      </button>
+    </div>,
+    document.body,
   );
 }

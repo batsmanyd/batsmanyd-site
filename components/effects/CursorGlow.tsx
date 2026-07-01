@@ -8,15 +8,15 @@ type CursorGlowProps = {
 };
 
 export function CursorGlow({ containerRef }: CursorGlowProps) {
-  const [isTouch, setIsTouch] = useState(false);
+  const [isTouch] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches,
+  );
 
   const springConfig = { stiffness: 150, damping: 25, mass: 0.4 };
   const x = useSpring(0, springConfig);
   const y = useSpring(0, springConfig);
 
   useEffect(() => {
-    setIsTouch(window.matchMedia("(pointer: coarse)").matches);
-
     const onMove = (e: MouseEvent) => {
       const el = containerRef.current;
       if (!el) return;

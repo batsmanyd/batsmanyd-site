@@ -37,12 +37,15 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, sans-serif;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
 }
 
 ::selection {
@@ -145,6 +148,38 @@ body {
     rgba(255, 255, 255, 0.02) 100%
   );
   transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.chat-panel-overlay {
+  overflow: hidden;
+  border: 1px solid var(--google-border);
+  border-radius: 1rem;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(66, 133, 244, 0.2),
+    0 8px 32px rgba(66, 133, 244, 0.08);
+}
+
+.chat-panel-overlay::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--google-blue),
+    var(--google-red),
+    var(--google-yellow),
+    var(--google-green)
+  );
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .google-panel::before {

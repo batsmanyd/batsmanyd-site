@@ -11,11 +11,11 @@ type RotatingTextProps = {
 
 export function RotatingText({ words, interval = 2800, className }: RotatingTextProps) {
   const [index, setIndex] = useState(0);
-  const [reduced, setReduced] = useState(true);
-
-  useEffect(() => {
-    setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
+  const [reduced] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
 
   useEffect(() => {
     if (reduced || words.length <= 1) return;

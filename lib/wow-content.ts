@@ -3,7 +3,6 @@ import {
   Megaphone,
   Workflow,
   Bot,
-  BarChart3,
   Clock,
   Shield,
   MessageSquare,

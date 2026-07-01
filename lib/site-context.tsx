@@ -25,23 +25,21 @@ const SiteContext = createContext<SiteContextValue | null>(null);
 export function SiteProvider({ children }: { children: ReactNode }) {
   const [activeSection, setActiveSection] = useState<SectionId>("hero");
   const [quizMessage, setQuizMessage] = useState<string | null>(null);
-  const sectionsRef = useMemo(() => new Map<SectionId, HTMLElement>(), []);
+  const sectionsRef = useRef(new Map<SectionId, HTMLElement>());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  const registerSection = useCallback(
-    (id: SectionId, el: HTMLElement | null) => {
-      const prev = sectionsRef.get(id);
-      if (prev && observerRef.current) observerRef.current.unobserve(prev);
+  const registerSection = useCallback((id: SectionId, el: HTMLElement | null) => {
+    const sections = sectionsRef.current;
+    const prev = sections.get(id);
+    if (prev && observerRef.current) observerRef.current.unobserve(prev);
 
-      if (el) {
-        sectionsRef.set(id, el);
-        observerRef.current?.observe(el);
-      } else {
-        sectionsRef.delete(id);
-      }
-    },
-    [sectionsRef],
-  );
+    if (el) {
+      sections.set(id, el);
+      observerRef.current?.observe(el);
+    } else {
+      sections.delete(id);
+    }
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -58,13 +56,13 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     );
 
     observerRef.current = observer;
-    sectionsRef.forEach((el) => observer.observe(el));
+    sectionsRef.current.forEach((el) => observer.observe(el));
 
     return () => {
       observer.disconnect();
       observerRef.current = null;
     };
-  }, [sectionsRef]);
+  }, []);
 
   const value = useMemo(
     () => ({

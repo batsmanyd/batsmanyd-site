@@ -8,8 +8,6 @@ import { useSite } from "@/lib/site-context";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/utils";
-
 export function ServiceQuiz() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
