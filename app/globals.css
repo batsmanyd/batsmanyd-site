@@ -167,6 +167,15 @@ body {
   isolation: isolate;
 }
 
+@media (min-width: 640px) {
+  .chat-panel-overlay[role="dialog"] {
+    height: min(
+      420px,
+      calc(100dvh - var(--panel-bottom, 6rem) - env(safe-area-inset-top, 0px) - 0.75rem)
+    );
+  }
+}
+
 .chat-panel-overlay::before {
   content: "";
   position: absolute;

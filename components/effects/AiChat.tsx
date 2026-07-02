@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useSyncExternalStore } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { Bot, X, Send, Sparkles } from "lucide-react";
 import { AI_GREETING, getAiReply, getQuickQuestions } from "@/lib/ai-responses";
@@ -28,6 +28,9 @@ export function AiChat() {
 
   const fabBottom = stickyCtaVisible ? "5.5rem" : "1.5rem";
   const panelBottom = stickyCtaVisible ? "9.5rem" : "6rem";
+  const panelStyle = {
+    "--panel-bottom": panelBottom,
+  } as CSSProperties;
 
   useEffect(() => {
     const onScroll = () => {
@@ -120,11 +123,8 @@ export function AiChat() {
             role="dialog"
             aria-modal="true"
             aria-label="AI-помощник"
-            className="chat-panel-overlay pointer-events-auto fixed inset-x-3 z-[9999] flex max-w-sm flex-col rounded-2xl shadow-2xl sm:inset-x-auto sm:right-6 sm:w-full"
-            style={{
-              bottom: panelBottom,
-              height: "min(420px, calc(100dvh - 10rem))",
-            }}
+            className="chat-panel-overlay pointer-events-auto fixed inset-x-0 bottom-0 z-[9999] flex h-[min(72dvh,calc(100dvh-env(safe-area-inset-top,0px)-0.75rem))] min-h-0 flex-col rounded-t-2xl pb-[env(safe-area-inset-bottom,0px)] shadow-2xl sm:inset-x-auto sm:right-6 sm:bottom-[var(--panel-bottom)] sm:h-auto sm:max-h-none sm:w-full sm:max-w-sm sm:rounded-2xl sm:pb-0"
+            style={panelStyle}
           >
           <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-surface-elevated px-4 py-3">
             <div className="flex items-center gap-2">
@@ -149,7 +149,7 @@ export function AiChat() {
             </button>
           </div>
 
-          <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-surface-elevated p-4">
+          <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-surface-elevated p-4 pt-3">
             {messages.map((msg, i) => (
               <div
                 key={i}
@@ -225,7 +225,10 @@ export function AiChat() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="pointer-events-auto fixed right-4 z-[10000] flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brick to-red text-white shadow-xl shadow-brick/30 transition-transform active:scale-95 sm:right-6"
+        className={cn(
+          "pointer-events-auto fixed right-4 z-[10000] flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brick to-red text-white shadow-xl shadow-brick/30 transition-transform active:scale-95 sm:right-6",
+          open && "max-sm:hidden",
+        )}
         style={{ bottom: fabBottom, touchAction: "manipulation" }}
         aria-label={open ? "Закрыть AI-чат" : "Открыть AI-чат"}
         aria-expanded={open}
