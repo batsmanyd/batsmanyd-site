@@ -109,17 +109,24 @@ export function AiChat() {
       )}
 
       {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="AI-помощник"
-          className="chat-panel-overlay pointer-events-auto fixed inset-x-4 flex max-w-sm flex-col rounded-2xl bg-surface-elevated shadow-2xl sm:inset-x-auto sm:right-6 sm:w-full"
-          style={{
-            bottom: panelBottom,
-            height: "min(420px, calc(100dvh - 10rem))",
-          }}
-        >
-          <div className="flex items-center justify-between border-b border-white/5 bg-brick/10 px-4 py-3">
+        <>
+          <button
+            type="button"
+            className="pointer-events-auto fixed inset-0 z-[9998] bg-black/70 sm:hidden"
+            onClick={() => setOpen(false)}
+            aria-label="Закрыть чат"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="AI-помощник"
+            className="chat-panel-overlay pointer-events-auto fixed inset-x-3 z-[9999] flex max-w-sm flex-col rounded-2xl shadow-2xl sm:inset-x-auto sm:right-6 sm:w-full"
+            style={{
+              bottom: panelBottom,
+              height: "min(420px, calc(100dvh - 10rem))",
+            }}
+          >
+          <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-surface-elevated px-4 py-3">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brick/20">
                 <Bot className="h-4 w-4 text-brick-light" />
@@ -142,7 +149,7 @@ export function AiChat() {
             </button>
           </div>
 
-          <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
+          <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-surface-elevated p-4">
             {messages.map((msg, i) => (
               <div
                 key={i}
@@ -155,8 +162,8 @@ export function AiChat() {
                   className={cn(
                     "max-w-[85%] whitespace-pre-line rounded-2xl px-3 py-2 text-xs leading-relaxed",
                     msg.role === "user"
-                      ? "rounded-tr-sm bg-white/10 text-foreground"
-                      : "rounded-tl-sm border border-brick/20 bg-brick/10 text-foreground",
+                      ? "rounded-tr-sm bg-white/15 text-foreground"
+                      : "rounded-tl-sm border border-brick/25 bg-[#2a1f1c] text-foreground",
                   )}
                 >
                   {msg.text}
@@ -176,7 +183,7 @@ export function AiChat() {
             )}
           </div>
 
-          <div className="border-t border-white/5 p-3">
+          <div className="shrink-0 border-t border-white/10 bg-surface-elevated p-3">
             <div className="mb-2 flex flex-wrap gap-1.5">
               {getQuickQuestions().map((q) => (
                 <button
@@ -211,13 +218,14 @@ export function AiChat() {
               </button>
             </form>
           </div>
-        </div>
+          </div>
+        </>
       )}
 
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="pointer-events-auto fixed right-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brick to-red text-white shadow-xl shadow-brick/30 transition-transform active:scale-95 sm:right-6"
+        className="pointer-events-auto fixed right-4 z-[10000] flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brick to-red text-white shadow-xl shadow-brick/30 transition-transform active:scale-95 sm:right-6"
         style={{ bottom: fabBottom, touchAction: "manipulation" }}
         aria-label={open ? "Закрыть AI-чат" : "Открыть AI-чат"}
         aria-expanded={open}
