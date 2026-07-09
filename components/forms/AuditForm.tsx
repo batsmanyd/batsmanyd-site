@@ -19,7 +19,7 @@ type AuditFormData = {
 };
 
 function validatePhone(value: string): true | string {
-  if (!isRuPhoneComplete(value)) return "Введите номер полностью: +7 (999) 123-45-67";
+  if (!isRuPhoneComplete(value)) return "Введите телефон в международном формате: +375..., +7...";
   return true;
 }
 
@@ -91,7 +91,7 @@ export function AuditForm() {
             <input
               id="audit-website"
               type="url"
-              placeholder="https://example.ru"
+              placeholder="https://example.by"
               className="input-field"
               {...register("website", {
                 required: "Укажите адрес сайта",
@@ -138,9 +138,9 @@ export function AuditForm() {
                 <input
                   id="audit-phone"
                   type="tel"
-                  inputMode="numeric"
+                  inputMode="tel"
                   autoComplete="tel"
-                  placeholder="+7 (999) 123-45-67"
+                  placeholder="+375 29 123-45-67"
                   className="input-field"
                   value={field.value}
                   onBlur={field.onBlur}
@@ -168,7 +168,7 @@ export function AuditForm() {
             <input
               id="audit-contact"
               type="text"
-              placeholder="@username или email@mail.ru"
+              placeholder="@username или email@example.com"
               className="input-field"
               {...register("contact", { required: "Укажите контакт для связи" })}
             />
