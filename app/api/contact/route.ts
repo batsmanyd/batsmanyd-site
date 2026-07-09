@@ -6,8 +6,9 @@ import {
 } from "@/lib/telegram";
 
 function validatePhone(phone: string): boolean {
-  const digits = phone.replace(/\D/g, "");
-  return digits.length === 11 && digits.startsWith("7");
+  const value = phone.trim();
+  const digits = value.replace(/\D/g, "");
+  return /^\+?\d{7,15}$/.test(value) && digits.length >= 7 && digits.length <= 15;
 }
 
 function validatePayload(body: unknown): ContactPayload | null {
@@ -54,16 +55,6 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-
-    // ── Настройка Telegram ──────────────────────────────────────────
-    // Создайте файл .env.local в корне проекта и добавьте:
-    //
-    //   TELEGRAM_BOT_TOKEN=ваш_токен_от_BotFather
-    //   TELEGRAM_CHAT_ID=ваш_chat_id
-    //
-    // TELEGRAM_BOT_TOKEN — токен бота от @BotFather
-    // TELEGRAM_CHAT_ID   — ID чата (личный или группы), куда слать заявки
-    // ────────────────────────────────────────────────────────────────
 
     const text = formatContactMessage(payload);
     await sendTelegramMessage(text);
