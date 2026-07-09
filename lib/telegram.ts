@@ -19,15 +19,21 @@ function escapeHtml(text: string): string {
     .replace(/>/g, "&gt;");
 }
 
+function getSiteLabel(): string {
+  return process.env.SITE_LABEL || process.env.NEXT_PUBLIC_SITE_URL || "batsmanyd-site";
+}
+
 export function formatContactMessage(data: ContactPayload): string {
   const now = new Date().toLocaleString("ru-RU", {
-    timeZone: "Europe/Moscow",
+    timeZone: "Europe/Minsk",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  const siteLabel = escapeHtml(getSiteLabel());
 
   return [
     "🚀 <b>Новая заявка с сайта batsmanyd</b>",
@@ -43,20 +49,22 @@ export function formatContactMessage(data: ContactPayload): string {
     "",
     "━━━━━━━━━━━━━━━━━━━━",
     "",
-    `🕐 <i>${now} (МСК)</i>`,
-    "🌐 <i>batsmanyd.ru → финальная форма</i>",
+    `🕐 <i>${now} (Минск)</i>`,
+    `🌐 <i>${siteLabel} → финальная форма</i>`,
   ].join("\n");
 }
 
 export function formatAuditMessage(data: AuditPayload): string {
   const now = new Date().toLocaleString("ru-RU", {
-    timeZone: "Europe/Moscow",
+    timeZone: "Europe/Minsk",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  const siteLabel = escapeHtml(getSiteLabel());
 
   return [
     "🔍 <b>Заявка на экспресс-аудит</b>",
@@ -70,18 +78,19 @@ export function formatAuditMessage(data: AuditPayload): string {
     "",
     "━━━━━━━━━━━━━━━━━━━━",
     "",
-    `🕐 <i>${now} (МСК)</i>`,
-    "🌐 <i>batsmanyd.ru → экспресс-аудит</i>",
+    `🕐 <i>${now} (Минск)</i>`,
+    `🌐 <i>${siteLabel} → экспресс-аудит</i>`,
   ].join("\n");
 }
 
 export async function sendTelegramMessage(text: string): Promise<void> {
-  // Настройка: config/telegram.env.example → скопируйте в .env.local
+  // Настройка переменных в Vercel:
+  // TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, опционально SITE_LABEL или NEXT_PUBLIC_SITE_URL
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
 
   if (!token || !chatId) {
-    throw new Error("TELEGRAM_BOT_TOKEN или TELEGRAM_CHAT_ID не заданы в .env.local");
+    throw new Error("TELEGRAM_BOT_TOKEN или TELEGRAM_CHAT_ID не заданы");
   }
 
   const response = await fetch(
