@@ -72,8 +72,8 @@ export function AuditForm() {
             Заявка принята!
           </h3>
           <p className="mt-2 max-w-sm text-sm text-muted">
-            Разберу ваш сайт в течение 24 часов и пришлю персональные
-            рекомендации на указанный контакт.
+            Сначала проверю сайт и подготовлю разбор. Итоговый отчёт отправлю туда,
+            куда вы указали: в Telegram или на email.
           </p>
         </motion.div>
       ) : (
@@ -163,15 +163,18 @@ export function AuditForm() {
 
           <div>
             <label htmlFor="audit-contact" className="mb-1.5 block text-sm font-medium text-foreground">
-              Telegram или email
+              Куда отправить отчёт
             </label>
             <input
               id="audit-contact"
               type="text"
-              placeholder="@username или email@example.com"
+              placeholder="Email или Telegram: audit@example.com / @username"
               className="input-field"
-              {...register("contact", { required: "Укажите контакт для связи" })}
+              {...register("contact", { required: "Укажите email или Telegram для отчёта" })}
             />
+            <p className="mt-1.5 text-xs text-muted/70">
+              Укажите, куда удобнее получить разбор сайта: на email или в Telegram.
+            </p>
             {errors.contact && (
               <p className="mt-1 text-xs text-red">{errors.contact.message}</p>
             )}
