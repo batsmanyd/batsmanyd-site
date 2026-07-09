@@ -6,8 +6,9 @@ import {
 } from "@/lib/telegram";
 
 function validatePhone(phone: string): boolean {
-  const digits = phone.replace(/\D/g, "");
-  return digits.length === 11 && digits.startsWith("7");
+  const value = phone.trim();
+  const digits = value.replace(/\D/g, "");
+  return /^\+?\d{7,15}$/.test(value) && digits.length >= 7 && digits.length <= 15;
 }
 
 function validatePayload(body: unknown): AuditPayload | null {
