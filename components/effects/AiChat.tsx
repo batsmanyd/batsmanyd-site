@@ -123,101 +123,101 @@ export function AiChat() {
             role="dialog"
             aria-modal="true"
             aria-label="AI-помощник"
-            className="chat-panel-overlay pointer-events-auto fixed inset-x-0 bottom-0 z-[9999] flex h-[min(72dvh,calc(100dvh-env(safe-area-inset-top,0px)-0.75rem))] min-h-0 flex-col rounded-t-2xl pb-[env(safe-area-inset-bottom,0px)] shadow-2xl sm:inset-x-auto sm:right-6 sm:bottom-[var(--panel-bottom)] sm:h-auto sm:max-h-none sm:w-full sm:max-w-sm sm:rounded-2xl sm:pb-0"
+            className="chat-panel-overlay pointer-events-auto fixed inset-x-0 bottom-0 z-[9999] flex h-[min(72dvh,calc(100dvh-env(safe-area-inset-top,0px)-0.75rem))] min-h-0 flex-col rounded-t-2xl pb-[env(safe-area-inset-bottom,0px)] shadow-2xl sm:inset-auto sm:right-6 sm:left-auto sm:bottom-[var(--panel-bottom)] sm:h-auto sm:max-h-[85vh] sm:w-full sm:max-w-sm sm:rounded-2xl sm:pb-0"
             style={panelStyle}
           >
-          <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-surface-elevated px-4 py-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brick/20">
-                <Bot className="h-4 w-4 text-brick-light" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">AI-помощник</p>
-                <p className="flex items-center gap-1 text-[10px] text-green-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-                  онлайн
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:text-foreground"
-              aria-label="Закрыть чат"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-surface-elevated p-4 pt-3">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start gap-2"}`}
-              >
-                {msg.role === "bot" && (
-                  <Sparkles className="mt-1 h-3.5 w-3.5 shrink-0 text-brick-light" />
-                )}
-                <div
-                  className={cn(
-                    "max-w-[85%] whitespace-pre-line rounded-2xl px-3 py-2 text-xs leading-relaxed",
-                    msg.role === "user"
-                      ? "rounded-tr-sm bg-white/15 text-foreground"
-                      : "rounded-tl-sm border border-brick/25 bg-[#2a1f1c] text-foreground",
-                  )}
-                >
-                  {msg.text}
+            <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-surface-elevated px-4 py-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brick/20">
+                  <Bot className="h-4 w-4 text-brick-light" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">AI-помощник</p>
+                  <p className="flex items-center gap-1 text-[10px] text-green-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
+                    онлайн
+                  </p>
                 </div>
               </div>
-            ))}
-            {typing && (
-              <div className="flex gap-1 px-6">
-                {[0, 1, 2].map((d) => (
-                  <span
-                    key={d}
-                    className="h-1.5 w-1.5 animate-pulse rounded-full bg-brick-light"
-                    style={{ animationDelay: `${d * 200}ms` }}
-                  />
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:text-foreground"
+                aria-label="Закрыть чат"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-surface-elevated p-4 pt-3">
+              {messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start gap-2"}`}
+                >
+                  {msg.role === "bot" && (
+                    <Sparkles className="mt-1 h-3.5 w-3.5 shrink-0 text-brick-light" />
+                  )}
+                  <div
+                    className={cn(
+                      "max-w-[85%] whitespace-pre-line rounded-2xl px-3 py-2 text-xs leading-relaxed",
+                      msg.role === "user"
+                        ? "rounded-tr-sm bg-white/15 text-foreground"
+                        : "rounded-tl-sm border border-brick/25 bg-[#2a1f1c] text-foreground",
+                    )}
+                  >
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+              {typing && (
+                <div className="flex gap-1 px-6">
+                  {[0, 1, 2].map((d) => (
+                    <span
+                      key={d}
+                      className="h-1.5 w-1.5 animate-pulse rounded-full bg-brick-light"
+                      style={{ animationDelay: `${d * 200}ms` }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="shrink-0 border-t border-white/10 bg-surface-elevated p-3">
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {getQuickQuestions().map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => send(q)}
+                    className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] text-muted transition-colors hover:border-brick/30 hover:text-foreground"
+                  >
+                    {q}
+                  </button>
                 ))}
               </div>
-            )}
-          </div>
-
-          <div className="shrink-0 border-t border-white/10 bg-surface-elevated p-3">
-            <div className="mb-2 flex flex-wrap gap-1.5">
-              {getQuickQuestions().map((q) => (
-                <button
-                  key={q}
-                  type="button"
-                  onClick={() => send(q)}
-                  className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] text-muted transition-colors hover:border-brick/30 hover:text-foreground"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                send(input);
-              }}
-              className="flex gap-2"
-            >
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ваш вопрос..."
-                className="input-field !py-2 text-xs"
-              />
-              <button
-                type="submit"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-brick to-red text-white"
-                aria-label="Отправить"
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  send(input);
+                }}
+                className="flex gap-2"
               >
-                <Send className="h-4 w-4" />
-              </button>
-            </form>
-          </div>
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ваш вопрос..."
+                  className="input-field !py-2 text-xs"
+                />
+                <button
+                  type="submit"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-brick to-red text-white"
+                  aria-label="Отправить"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </form>
+            </div>
           </div>
         </>
       )}
