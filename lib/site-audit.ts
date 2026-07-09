@@ -60,6 +60,20 @@ function scoreLabel(score: number | null): string {
   return `${score}/100 — плохо`;
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function safeText(value: string | null, maxLength = 180): string {
+  if (!value) return "не найден";
+  const clean = value.replace(/\s+/g, " ").trim();
+  const shortened = clean.length > maxLength ? `${clean.slice(0, maxLength - 1)}…` : clean;
+  return escapeHtml(shortened);
+}
+
 function extractTag(html: string, pattern: RegExp): string | null {
   const match = html.match(pattern);
   return match?.[1]?.replace(/\s+/g, " ").trim() || null;
@@ -255,15 +269,15 @@ export function formatAuditResultForTelegram(audit: WebsiteAuditResult): string 
     `♿ <b>Accessibility:</b> ${scoreLabel(mobile?.accessibility ?? desktop?.accessibility ?? null)}`,
     `🧭 <b>SEO:</b> ${scoreLabel(mobile?.seo ?? desktop?.seo ?? null)}`,
     "",
-    `🌐 <b>Финальный URL:</b> ${audit.seo.finalUrl}`,
-    `📄 <b>Title:</b> ${audit.seo.title || "не найден"}`,
-    `📝 <b>Description:</b> ${audit.seo.description || "не найден"}`,
-    `🏷 <b>H1:</b> ${audit.seo.h1 || "не найден"}`,
+    `🌐 <b>Финальный URL:</b> ${safeText(audit.seo.finalUrl, 220)}`,
+    `📄 <b>Title:</b> ${safeText(audit.seo.title, 180)}`,
+    `📝 <b>Description:</b> ${safeText(audit.seo.description, 220)}`,
+    `🏷 <b>H1:</b> ${safeText(audit.seo.h1, 180)}`,
     "",
     "⚠️ <b>Что проверить первым:</b>",
-    ...audit.summary.map((item) => `• ${item}`),
+    ...audit.summary.map((item) => `• ${safeText(item, 220)}`),
     "",
-    mobile ? `🔗 <b>PageSpeed mobile:</b> ${mobile.reportUrl}` : "",
-    desktop ? `🔗 <b>PageSpeed desktop:</b> ${desktop.reportUrl}` : "",
+    mobile ? `🔗 <b>PageSpeed mobile:</b> ${escapeHtml(mobile.reportUrl)}` : "",
+    desktop ? `🔗 <b>PageSpeed desktop:</b> ${escapeHtml(desktop.reportUrl)}` : "",
   ].filter(Boolean).join("\n");
 }
