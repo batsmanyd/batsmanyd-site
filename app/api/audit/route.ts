@@ -4,6 +4,7 @@ import {
   sendTelegramMessage,
   type AuditPayload,
 } from "@/lib/telegram";
+import { auditWebsite, formatAuditResultForTelegram } from "@/lib/site-audit";
 
 function validatePhone(phone: string): boolean {
   const value = phone.trim();
@@ -14,7 +15,10 @@ function validatePhone(phone: string): boolean {
 function validatePayload(body: unknown): AuditPayload | null {
   if (!body || typeof body !== "object") return null;
 
-  const { website, name, phone, contact } = body as Record<string, unknown>;
+  const { website, name, phone, contact, company } = body as Record<string, unknown>;
+
+  // Honeypot: обычный пользователь это поле не видит и не заполняет.
+  if (typeof company === "string" && company.trim().length > 0) return null;
 
   if (
     typeof website !== "string" ||
@@ -56,7 +60,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const text = formatAuditMessage(payload);
+    let text = formatAuditMessage(payload);
+
+    try {
+      const audit = await auditWebsite(payload.website);
+      text += formatAuditResultForTelegram(audit);
+    } catch (auditError) {
+      console.error("Website auto-audit error:", auditError);
+      text += "\n\n⚠️ <b>Авто-аудит:</b> не удалось выполнить автоматически. Заявка сохранена, сайт нужно проверить вручную.";
+    }
+
     await sendTelegramMessage(text);
 
     return NextResponse.json({ ok: true });
