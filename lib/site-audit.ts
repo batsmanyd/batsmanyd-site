@@ -1,5 +1,7 @@
 export type PageSpeedStrategy = "mobile" | "desktop";
 
+type PageSpeedCategoryParam = "PERFORMANCE" | "ACCESSIBILITY" | "BEST_PRACTICES" | "SEO";
+
 export type PageSpeedScore = {
   strategy: PageSpeedStrategy;
   performance: number | null;
@@ -37,6 +39,9 @@ type LighthouseCategory = {
 };
 
 type PageSpeedResponse = {
+  error?: {
+    message?: string;
+  };
   lighthouseResult?: {
     categories?: Record<string, LighthouseCategory | undefined>;
   };
@@ -92,20 +97,28 @@ function extractMeta(html: string, name: string): string | null {
 
 async function runPageSpeed(url: string, strategy: PageSpeedStrategy): Promise<PageSpeedScore> {
   const apiUrl = new URL("https://www.googleapis.com/pagespeedonline/v5/runPagespeed");
+  const categories: PageSpeedCategoryParam[] = [
+    "PERFORMANCE",
+    "ACCESSIBILITY",
+    "BEST_PRACTICES",
+    "SEO",
+  ];
+
   apiUrl.searchParams.set("url", url);
-  apiUrl.searchParams.set("strategy", strategy);
-  apiUrl.searchParams.append("category", "performance");
-  apiUrl.searchParams.append("category", "accessibility");
-  apiUrl.searchParams.append("category", "best-practices");
-  apiUrl.searchParams.append("category", "seo");
+  apiUrl.searchParams.set("strategy", strategy.toUpperCase());
+  for (const category of categories) {
+    apiUrl.searchParams.append("category", category);
+  }
 
   const reportUrl = `https://pagespeed.web.dev/analysis?url=${encodeURIComponent(url)}&form_factor=${strategy === "mobile" ? "mobile" : "desktop"}`;
 
   try {
     const response = await fetch(apiUrl.toString(), {
-      signal: withTimeout(18000),
+      signal: withTimeout(25000),
       headers: { Accept: "application/json" },
     });
+
+    const data = (await response.json().catch(() => null)) as PageSpeedResponse | null;
 
     if (!response.ok) {
       return {
@@ -115,21 +128,34 @@ async function runPageSpeed(url: string, strategy: PageSpeedStrategy): Promise<P
         bestPractices: null,
         seo: null,
         reportUrl,
-        error: `PageSpeed вернул статус ${response.status}`,
+        error: data?.error?.message || `PageSpeed вернул статус ${response.status}`,
       };
     }
 
-    const data = (await response.json()) as PageSpeedResponse;
-    const categories = data.lighthouseResult?.categories ?? {};
+    const categoriesData = data?.lighthouseResult?.categories ?? {};
 
-    return {
+    const result = {
       strategy,
-      performance: toScore(categories.performance?.score),
-      accessibility: toScore(categories.accessibility?.score),
-      bestPractices: toScore(categories["best-practices"]?.score),
-      seo: toScore(categories.seo?.score),
+      performance: toScore(categoriesData.performance?.score),
+      accessibility: toScore(categoriesData.accessibility?.score),
+      bestPractices: toScore(categoriesData["best-practices"]?.score),
+      seo: toScore(categoriesData.seo?.score),
       reportUrl,
     };
+
+    if (
+      result.performance === null &&
+      result.accessibility === null &&
+      result.bestPractices === null &&
+      result.seo === null
+    ) {
+      return {
+        ...result,
+        error: "PageSpeed ответил без Lighthouse-оценок",
+      };
+    }
+
+    return result;
   } catch (error) {
     return {
       strategy,
@@ -259,6 +285,9 @@ export async function auditWebsite(url: string): Promise<WebsiteAuditResult> {
 export function formatAuditResultForTelegram(audit: WebsiteAuditResult): string {
   const mobile = audit.pageSpeed.find((item) => item.strategy === "mobile");
   const desktop = audit.pageSpeed.find((item) => item.strategy === "desktop");
+  const pageSpeedErrors = audit.pageSpeed
+    .filter((item) => item.error)
+    .map((item) => `• ${item.strategy}: ${safeText(item.error ?? "ошибка", 220)}`);
 
   return [
     "",
@@ -268,6 +297,9 @@ export function formatAuditResultForTelegram(audit: WebsiteAuditResult): string 
     `🖥 <b>Desktop performance:</b> ${scoreLabel(desktop?.performance ?? null)}`,
     `♿ <b>Accessibility:</b> ${scoreLabel(mobile?.accessibility ?? desktop?.accessibility ?? null)}`,
     `🧭 <b>SEO:</b> ${scoreLabel(mobile?.seo ?? desktop?.seo ?? null)}`,
+    pageSpeedErrors.length > 0 ? "" : "",
+    pageSpeedErrors.length > 0 ? "⚙️ <b>PageSpeed диагностика:</b>" : "",
+    ...pageSpeedErrors,
     "",
     `🌐 <b>Финальный URL:</b> ${safeText(audit.seo.finalUrl, 220)}`,
     `📄 <b>Title:</b> ${safeText(audit.seo.title, 180)}`,
