@@ -16,6 +16,7 @@ type AuditFormData = {
   name: string;
   phone: string;
   contact: string;
+  company?: string;
 };
 
 function validatePhone(value: string): true | string {
@@ -32,7 +33,7 @@ export function AuditForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<AuditFormData>({
-    defaultValues: { phone: "" },
+    defaultValues: { phone: "", company: "" },
   });
 
   const onSubmit = async (data: AuditFormData) => {
@@ -84,6 +85,15 @@ export function AuditForm() {
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-4"
         >
+          <input
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            className="hidden"
+            aria-hidden="true"
+            {...register("company")}
+          />
+
           <div>
             <label htmlFor="audit-website" className="mb-1.5 block text-sm font-medium text-foreground">
               Адрес сайта
@@ -196,7 +206,7 @@ export function AuditForm() {
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Отправляем...
+                Проверяем сайт...
               </>
             ) : (
               "Получить бесплатный аудит"
