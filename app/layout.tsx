@@ -12,24 +12,39 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://batsmanyd-site-964b.vercel.app";
+const title = "batsmanyd — Сайты, реклама и AI-автоматизация";
+const description =
+  "Digital-специалист: современные сайты, контекстная реклама, заявки в Telegram/CRM и AI-автоматизация. Бесплатный экспресс-аудит сайта.";
+
 export const metadata: Metadata = {
-  title: "batsmanyd — Сайты, реклама и AI-автоматизация",
-  description:
-    "Премиальный digital-специалист: современные сайты, контекстная реклама и AI-автоматизация. Бесплатный экспресс-аудит сайта за 24 часа.",
+  metadataBase: new URL(siteUrl),
+  title,
+  description,
   keywords: [
     "сайты",
     "реклама",
     "AI-автоматизация",
     "лендинг",
     "контекстная реклама",
+    "заявки в Telegram",
+    "CRM автоматизация",
     "batsmanyd",
   ],
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   openGraph: {
-    title: "batsmanyd — Сайты, реклама и AI-автоматизация",
-    description:
-      "Превращаю сайт в систему продаж с AI и рекламой. Бесплатный экспресс-аудит за 24 часа.",
+    title,
+    description,
     type: "website",
     locale: "ru_RU",
+    url: "/",
+    siteName: "batsmanyd",
   },
 };
 
