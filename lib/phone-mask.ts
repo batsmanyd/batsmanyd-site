@@ -1,38 +1,34 @@
 import type { KeyboardEvent } from "react";
 
-/** Извлекает только цифры и нормализует к формату 7XXXXXXXXXX */
-export function normalizeRuPhoneDigits(value: string): string {
-  let digits = value.replace(/\D/g, "");
+/**
+ * Нормализует телефон без привязки к одной стране.
+ * Подходит для Беларуси (+375), России/Казахстана (+7) и других международных номеров.
+ */
+export function normalizePhone(value: string): string {
+  const trimmed = value.trim();
+  const hasPlus = trimmed.startsWith("+");
+  const digits = trimmed.replace(/\D/g, "").slice(0, 15);
 
-  if (digits.startsWith("8")) {
-    digits = "7" + digits.slice(1);
-  } else if (digits.length > 0 && !digits.startsWith("7")) {
-    digits = "7" + digits;
-  }
-
-  return digits.slice(0, 11);
+  if (!digits) return "";
+  return `${hasPlus ? "+" : "+"}${digits}`;
 }
 
-/** Форматирует цифры в маску +7 (999) 123-45-67 */
-export function formatRuPhone(value: string): string {
-  const digits = normalizeRuPhoneDigits(value);
-  if (digits.length === 0) return "";
-
-  const local = digits.startsWith("7") ? digits.slice(1) : digits;
-
-  if (local.length === 0) return "+7";
-  if (local.length <= 3) return `+7 (${local}`;
-  if (local.length <= 6) return `+7 (${local.slice(0, 3)}) ${local.slice(3)}`;
-  if (local.length <= 8) {
-    return `+7 (${local.slice(0, 3)}) ${local.slice(3, 6)}-${local.slice(6)}`;
-  }
-  return `+7 (${local.slice(0, 3)}) ${local.slice(3, 6)}-${local.slice(6, 8)}-${local.slice(8, 10)}`;
+/**
+ * Лёгкая маска: не ломает международные номера и не подставляет +7 насильно.
+ */
+export function formatPhone(value: string): string {
+  return normalizePhone(value);
 }
 
-export function isRuPhoneComplete(value: string): boolean {
-  const digits = normalizeRuPhoneDigits(value);
-  return digits.length === 11 && digits.startsWith("7");
+export function isPhoneComplete(value: string): boolean {
+  const digits = value.replace(/\D/g, "");
+  return /^\+?\d{7,15}$/.test(value.trim()) && digits.length >= 7 && digits.length <= 15;
 }
+
+// Обратная совместимость для уже подключённых форм.
+export const normalizeRuPhoneDigits = normalizePhone;
+export const formatRuPhone = formatPhone;
+export const isRuPhoneComplete = isPhoneComplete;
 
 const ALLOWED_KEYS = new Set([
   "Backspace",
@@ -50,5 +46,5 @@ const ALLOWED_KEYS = new Set([
 
 export function handlePhoneKeyDown(e: KeyboardEvent<HTMLInputElement>) {
   if (ALLOWED_KEYS.has(e.key) || e.ctrlKey || e.metaKey) return;
-  if (!/^\d$/.test(e.key)) e.preventDefault();
+  if (!/^[\d+\-()\s]$/.test(e.key)) e.preventDefault();
 }
