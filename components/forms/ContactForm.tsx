@@ -31,7 +31,7 @@ type ContactFormData = {
 };
 
 function validatePhone(value: string): true | string {
-  if (!isRuPhoneComplete(value)) return "Введите номер полностью: +7 (999) 123-45-67";
+  if (!isRuPhoneComplete(value)) return "Введите телефон в международном формате: +375..., +7...";
   return true;
 }
 
@@ -223,9 +223,9 @@ export function ContactForm() {
                       <input
                         id="contact-phone"
                         type="tel"
-                        inputMode="numeric"
+                        inputMode="tel"
                         autoComplete="tel"
-                        placeholder="+7 (999) 123-45-67"
+                        placeholder="+375 29 123-45-67"
                         className="input-field"
                         value={field.value}
                         onBlur={field.onBlur}
@@ -254,7 +254,7 @@ export function ContactForm() {
                   id="contact-contact"
                   type="text"
                   autoComplete="email"
-                  placeholder="@username или email@mail.ru"
+                  placeholder="@username или email@example.com"
                   className="input-field"
                   {...register("contact", {
                     required: "Укажите Telegram или email",
