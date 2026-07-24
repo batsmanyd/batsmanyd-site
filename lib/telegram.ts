@@ -84,13 +84,11 @@ export function formatAuditMessage(data: AuditPayload): string {
 }
 
 export async function sendTelegramMessage(text: string): Promise<void> {
-  // Настройка переменных в Vercel:
-  // TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, опционально SITE_LABEL или NEXT_PUBLIC_SITE_URL
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const chatId = process.env.TELEGRAM_LEADS_CHAT_ID || "-1004260640319";
 
-  if (!token || !chatId) {
-    throw new Error("TELEGRAM_BOT_TOKEN или TELEGRAM_CHAT_ID не заданы");
+  if (!token) {
+    throw new Error("TELEGRAM_BOT_TOKEN не задан");
   }
 
   const response = await fetch(
