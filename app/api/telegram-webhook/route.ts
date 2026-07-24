@@ -32,6 +32,19 @@ async function sendMessage(chatId: number | string, text: string, replyMarkup?: 
 export async function POST(request: NextRequest) {
   try {
     const update = await request.json();
+    const ownerChatId = process.env.TELEGRAM_CHAT_ID;
+
+    const channelPost = update?.channel_post;
+    if (channelPost?.chat?.id) {
+      if (ownerChatId) {
+        await sendMessage(
+          ownerChatId,
+          `✅ НАЙДЕН КАНАЛ ДЛЯ ЗАЯВОК\n\nНазвание: ${channelPost.chat.title || "без названия"}\nChat ID: ${channelPost.chat.id}\n\nСкопируйте этот Chat ID в TELEGRAM_CHAT_ID в Vercel.`,
+        );
+      }
+      return NextResponse.json({ ok: true });
+    }
+
     const message = update?.message;
     if (!message?.chat?.id) return NextResponse.json({ ok: true });
 
@@ -65,7 +78,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    const ownerChatId = process.env.TELEGRAM_CHAT_ID;
     if (ownerChatId) {
       await sendMessage(
         ownerChatId,
