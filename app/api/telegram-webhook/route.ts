@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const APPLICATIONS_CHANNEL_ID = "-1004260640319";
+
 const keyboard = {
   keyboard: [
     [{ text: "🌐 Нужен сайт" }, { text: "🤖 Telegram-бот / Mini App" }],
@@ -32,16 +34,9 @@ async function sendMessage(chatId: number | string, text: string, replyMarkup?: 
 export async function POST(request: NextRequest) {
   try {
     const update = await request.json();
-    const ownerChatId = process.env.TELEGRAM_CHAT_ID;
 
     const channelPost = update?.channel_post;
     if (channelPost?.chat?.id) {
-      if (ownerChatId) {
-        await sendMessage(
-          ownerChatId,
-          `✅ НАЙДЕН КАНАЛ ДЛЯ ЗАЯВОК\n\nНазвание: ${channelPost.chat.title || "без названия"}\nChat ID: ${channelPost.chat.id}\n\nСкопируйте этот Chat ID в TELEGRAM_CHAT_ID в Vercel.`,
-        );
-      }
       return NextResponse.json({ ok: true });
     }
 
@@ -78,12 +73,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    if (ownerChatId) {
-      await sendMessage(
-        ownerChatId,
-        `📩 НОВОЕ СООБЩЕНИЕ ИЗ БОТА\n\nИмя: ${name}\nTelegram: ${username}\nChat ID: ${chatId}\n\nСообщение:\n${text || "[не текстовое сообщение]"}`,
-      );
-    }
+    await sendMessage(
+      APPLICATIONS_CHANNEL_ID,
+      `📩 НОВОЕ СООБЩЕНИЕ ИЗ БОТА\n\nИмя: ${name}\nTelegram: ${username}\nChat ID: ${chatId}\n\nСообщение:\n${text || "[не текстовое сообщение]"}`,
+    );
 
     await sendMessage(chatId, "Спасибо. Сообщение передано Юрию. Он свяжется с вами.", keyboard);
     return NextResponse.json({ ok: true });
