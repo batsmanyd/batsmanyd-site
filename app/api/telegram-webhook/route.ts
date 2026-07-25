@@ -9,6 +9,7 @@ const menuKeyboard = {
     [{ text: "📣 Реклама" }, { text: "⚙️ Автоматизация" }],
     [{ text: "🔎 Бесплатный разбор" }, { text: "📂 Примеры работ" }],
     [{ text: "📢 Канал" }, { text: "☎️ Связаться" }],
+    [{ text: "📱 Поделиться номером", request_contact: true }],
   ],
   resize_keyboard: true,
   is_persistent: true,
@@ -113,6 +114,23 @@ export async function POST(request: NextRequest) {
     const username = message.from?.username ? `@${message.from.username}` : "не указан";
     const name = [message.from?.first_name, message.from?.last_name].filter(Boolean).join(" ") || "не указано";
 
+    if (message.contact?.phone_number) {
+      const phone = String(message.contact.phone_number);
+      const contactName = [message.contact.first_name, message.contact.last_name].filter(Boolean).join(" ") || name;
+
+      await sendMessage(
+        APPLICATIONS_CHANNEL_ID,
+        `📱 НОВЫЙ КОНТАКТ ИЗ БОТА\n\nИмя: ${contactName}\nТелефон: ${phone}\nTelegram: ${username}\nChat ID: ${chatId}`,
+      );
+
+      await sendMessage(
+        chatId,
+        "Спасибо. Номер телефона передан Юрию. Он свяжется с вами.",
+        menuKeyboard,
+      );
+      return NextResponse.json({ ok: true });
+    }
+
     if (text === "/start" || text === "/menu" || text === "◀️ Главное меню") {
       await sendMessage(
         chatId,
@@ -183,7 +201,7 @@ export async function POST(request: NextRequest) {
 
       await sendMessage(
         chatId,
-        `Готово. Заявка по разделу «${service}» передана Юрию. Он свяжется с вами.`,
+        `Готово. Заявка по разделу «${service}» передана Юрию. При необходимости нажмите «📱 Поделиться номером».`,
         menuKeyboard,
       );
       return NextResponse.json({ ok: true });
