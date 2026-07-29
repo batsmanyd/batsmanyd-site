@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { brand } from "@/lib/content";
 
 export function Footer() {
@@ -13,9 +14,15 @@ export function Footer() {
           </span>
         </div>
         <p className="text-sm text-muted">{brand.tagline}</p>
-        <p className="text-xs text-muted/60">
-          © {new Date().getFullYear()} {brand.name}. Все права защищены.
-        </p>
+        <div className="flex flex-col items-center gap-2 text-xs text-muted/60 sm:items-end">
+          <Link
+            href="/privacy"
+            className="transition-colors hover:text-foreground"
+          >
+            Политика обработки персональных данных
+          </Link>
+          <p>© {new Date().getFullYear()} {brand.name}. Все права защищены.</p>
+        </div>
       </div>
     </footer>
   );
